@@ -1,0 +1,44 @@
+services:
+  mongodb:
+    image: "mongo:latest"
+    container_name: mongodb
+    ports:
+      - 27017:27017
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    volumes:
+      - ./config/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+      - ./data/otel-data:/etc/otel-data
+    ports:
+      - 1888:1888 # pprof extension
+      - 8888:8888 # Collector metrics exposed 
+      - 8889:8889 # Exporter metrics exposed
+      - 13133:13133 # Health check
+      - 4317:4317 # OLTP gRPC receiver
+      - 4318:4318 # OLTP HTTP receiver
+      - 55679:55679 # zpages extension
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+
+  jaeger:
+    image: jaegertracing/jaeger
+    ports:
+      - 16686:16686  # Web UI
+      - 64317:4317   # OTLP grcp
+      - 64318:4318   # OTLP http
+
+  loki:
+    image: grafana/loki
+    ports:
+      - 3100:3100
+
+  grafana:
+    image: grafana/grafana-oss
+    ports:
+      - 3000:3000
